@@ -22,18 +22,26 @@ class Base(db.Model):
         except SQLAlchemyError:
             return db.session.rollback()
 
+        
+    def delete(self):
+        """Delete an instance of the model from the database."""
+        try:
+            db.session.delete(self)
+            return db.session.commit()
+        except SQLAlchemyError:
+            return db.session.rollback()
 
+    
     @classmethod
     def get_all(cls):
         """Return all the data in the model."""
         return cls.query.all()
-        
+
+    
+    @classmethod
+    def filter_by_username(cls, **kwargs):
+        return cls.query.filter_by(**kwargs).first()
 
     @classmethod
-    def delete(cls):
-        """Delete an instance of the model from the database."""
-        try:
-            db.session.delete(cls)
-            return db.session.commit()
-        except SQLAlchemyError:
-            return db.session.rollback()
+    def filter_by_email(cls, **kwargs):
+        return cls.query.filter_by(**kwargs).first()
