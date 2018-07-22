@@ -1,4 +1,5 @@
 # coding=utf-8
+import os
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -7,7 +8,8 @@ class Config(object):
     """Parent configuration class."""
     DEBUG = False
     CSRF_ENABLED = True
-
+    SECRET = os.environ.get('SECRET')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""
