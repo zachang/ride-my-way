@@ -39,9 +39,5 @@ class Base(db.Model):
 
     
     @classmethod
-    def filter_by_username(cls, **kwargs):
-        return cls.query.filter_by(**kwargs).first()
-
-    @classmethod
-    def filter_by_email(cls, **kwargs):
+    def filter_by_any(cls, **kwargs):
         return cls.query.filter_by(**kwargs).first()
