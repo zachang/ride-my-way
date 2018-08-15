@@ -10,7 +10,7 @@ db = SQLAlchemy()
 
 def create_app(config_name):
 
-    from app.resources.user import UserRegistration, UserLogin
+    from app.resources.user import UserRegistration, UserLogin, UserDetails
 
     """
     wrapper for the creation of a new Flask object
@@ -27,5 +27,6 @@ def create_app(config_name):
 
     api.add_resource(UserRegistration, '/register', '/register/')
     api.add_resource(UserLogin, '/login', '/login/')
+    api.add_resource(UserDetails, '/users', '/users/')
 
     return app

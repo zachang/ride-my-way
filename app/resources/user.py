@@ -4,6 +4,8 @@ from flask_jwt_extended import (create_access_token,
  jwt_required, get_jwt_identity, get_raw_jwt)
 from app.models.user import User
 from app.schemas.user import UsersSchema
+from app.utils.response_builder import response_builder
+from app.utils.to_lower_strip import to_lower_strip
 
 users_schema = UsersSchema(many=True)
 user_schema = UsersSchema() 
@@ -17,57 +19,73 @@ class UserRegistration(Resource):
         if errors:
             return errors, 400
         else:
-            username = User.filter_by_any(username=payload['username'].strip())
-            email = User.filter_by_any(email=payload['email'].strip())
+            username = User.filter_by_any(username=to_lower_strip(payload['username']))
+            email = User.filter_by_any(email=to_lower_strip(payload['email']))
 
             if username is None and email is None:
                 user = User(
-                    firstName=payload['firstName'].strip(),
-                    lastName=payload['lastName'].strip(),
-                    username=payload['username'].strip(),
-                    email=payload['email'].strip(),
-                    password=User.generate_hash(payload['password'].strip())
+                    first_name=to_lower_strip(payload['first_name']),
+                    last_name=to_lower_strip(payload['last_name']),
+                    username=to_lower_strip(payload['username']),
+                    email=to_lower_strip(payload['email']),
+                    password=User.generate_hash(to_lower_strip(payload['password']))
                 )
                 user.save()
                 access_token = create_access_token(identity = payload['username'])
-                response = jsonify({
+                return response_builder({
                 'status': 'success',
                 'user': user_schema.dump(user).data,
                 'token': access_token
-                })
-                response.status_code = 201
-                return response
+                }, 201)
             else:
-                response = jsonify({
+                return response_builder({
                 'status': 'fail',
                 'message': 'this user already exist'
-                })
-                response.status_code = 409
-                return response
+                }, 409)
 
 class UserLogin(Resource):
 
     def post(self):
         payload = request.get_json()
         try:
-            username = payload['username'].strip()
-            password = payload['password'].strip()
-            if len(username) == 0:
-                return {'message': 'username is required'}, 400
-            elif len(password) == 0:
-                return {'message': 'password is required'}, 400
+            username = to_lower_strip(payload['username'])
+            password = to_lower_strip(payload['password'])
+            if not username:
+                return response_builder({'message': 'username is required'}, 400)
+            elif not password:
+                return response_builder({'message': 'password is required'}, 400)
             else:
                 current_user = User.filter_by_any(username=username)
 
                 if not current_user: 
-                    return {'message': 'User {} does not exist'.format(payload['username'])}, 404
-                elif User.verify_hash(password, current_user.password):
+                    return response_builder({
+                        'message': 'User {} does not exist'.format(payload['username'])
+                        }, 404)
+                elif current_user.verify_hash(password, current_user.password):
                     access_token = create_access_token(identity = payload['username'])
-                    return {
+                    return response_builder({
                     'message': 'Logged in as {}'.format(current_user.username),
                     'access_token': access_token,
-                    }, 200
+                    })
                 else:
-                    return {'message': 'Wrong credentials'}
+                    return response_builder({'message': 'Wrong credentials'}, 400)
         except KeyError as errors:
-            return {'message': '{} is required'.format(errors)}, 400
+            return response_builder({'message': '{} is required'.format(errors)}, 400)
+
+
+class UserDetails(Resource):
+    @jwt_required
+    def get(self):
+        all_users = User.get_all()
+      
+        if all_users:
+            return response_builder({
+                'status': 'success',
+                'user': users_schema.dump(all_users).data
+                })
+        else:
+            return response_builder({
+                'status': 'success',
+                'user': 'users not available yet'
+                })
+
