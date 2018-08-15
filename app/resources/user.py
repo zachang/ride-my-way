@@ -3,18 +3,21 @@ from flask_restful import Resource
 from flask_jwt_extended import (create_access_token,
  jwt_required, get_jwt_identity, get_raw_jwt)
 from app.models.user import User
-from app.schemas.user import UsersSchema
+from app.schemas.user import UserSchema, UserSchemaEdit
 from app.utils.response_builder import response_builder
 from app.utils.to_lower_strip import to_lower_strip
 
-users_schema = UsersSchema(many=True)
-user_schema = UsersSchema() 
+users_schema = UserSchema(many=True)
+user_schema = UserSchema()
+users_schema_edit = UserSchemaEdit(many=True)
+user_schema_edit = UserSchemaEdit()
+ 
 
 class UserRegistration(Resource):
 
     def post(self):
         payload = request.get_json()
-        errors = UsersSchema().validate(payload)
+        errors = user_schema.validate(payload)
         
         if errors:
             return errors, 400
@@ -62,7 +65,7 @@ class UserLogin(Resource):
                         'message': 'User {} does not exist'.format(payload['username'])
                         }, 404)
                 elif current_user.verify_hash(password, current_user.password):
-                    access_token = create_access_token(identity = payload['username'])
+                    access_token = create_access_token(identity = username)
                     return response_builder({
                     'message': 'Logged in as {}'.format(current_user.username),
                     'access_token': access_token,
@@ -88,4 +91,50 @@ class UserDetails(Resource):
                 'status': 'success',
                 'user': 'users not available yet'
                 })
+
+class SingleUserDetails(Resource):
+    @jwt_required
+    def put(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id)
+        payload = request.get_json(silent=True)
+        errors = user_schema_edit.validate(payload)
+
+        if valid_user.username != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only edit your data'
+                }, 401)
+        
+        if errors:
+            return errors, 400
+
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if payload:
+            if payload.get('first_name'):
+                valid_user.first_name = to_lower_strip(payload.get('first_name'))
+            if payload.get('last_name'):
+                valid_user.last_name = to_lower_strip(payload.get('last_name'))
+            if payload.get('username'):
+                valid_user.username = to_lower_strip(payload.get('username'))
+            if payload.get('email'):
+                valid_user.email = to_lower_strip(payload.get('email'))
+            if payload.get('phone_no'):
+                valid_user.phone_no = to_lower_strip(payload.get('phone_no'))
+            valid_user.save()
+            return response_builder({
+                'status': 'success',
+                'message': 'Edit completed',
+                'user': user_schema.dump(valid_user).data
+                })
+        else: 
+            return response_builder({
+            'status': 'Fail',
+            'message': 'At least one data field for editing must be provided'
+            }, 400)
 

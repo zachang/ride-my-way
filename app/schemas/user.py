@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, ValidationError, validate
 
-class UsersSchema(Schema):
+class UserSchema(Schema):
     id = fields.String(dump_only=True)
     first_name = fields.String(required=True, dump_to='firstName',
     validate=[validate.Length(min=2, max=50)],
@@ -33,3 +33,11 @@ class UsersSchema(Schema):
     reg_type = fields.String(dump_to='regType')
     created_at = fields.DateTime(dump_to='createdAt')
     updated_at = fields.DateTime(dump_to='updatedAt')
+
+
+class UserSchemaEdit(Schema):
+    first_name = fields.String(dump_to='firstName', validate=[validate.Length(min=2, max=50)])
+    last_name = fields.String(dump_to='lastName', validate=[validate.Length(min=2, max=50)])
+    username = fields.String(validate=[validate.Length(min=2, max=50)])
+    email = fields.Email(validate=[validate.Length(max=150)])
+    phone_no = fields.String(dump_to='phoneNo', validate=[validate.Length(min=11, max=14)])
