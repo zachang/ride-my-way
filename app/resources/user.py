@@ -140,6 +140,29 @@ class SingleUserDetails(Resource):
 
 
     @jwt_required
+    def get(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id) 
+
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only view your details'
+                }, 403)
+
+        return response_builder({
+            'status': 'success',
+            'user': user_schema.dump(valid_user).data
+            })
+
+
+    @jwt_required
     def delete(self, user_id):
         current_user = get_jwt_identity()
         valid_user = User.get_one(user_id) 
