@@ -34,7 +34,7 @@ class UserRegistration(Resource):
                     password=User.generate_hash(to_lower_strip(payload['password']))
                 )
                 user.save()
-                access_token = create_access_token(identity = payload['username'])
+                access_token = create_access_token(identity = user.id)
                 return response_builder({
                 'status': 'success',
                 'user': user_schema.dump(user).data,
@@ -65,7 +65,7 @@ class UserLogin(Resource):
                         'message': 'User {} does not exist'.format(payload['username'])
                         }, 404)
                 elif current_user.verify_hash(password, current_user.password):
-                    access_token = create_access_token(identity = username)
+                    access_token = create_access_token(identity = current_user.id)
                     return response_builder({
                     'message': 'Logged in as {}'.format(current_user.username),
                     'access_token': access_token,
@@ -99,12 +99,6 @@ class SingleUserDetails(Resource):
         valid_user = User.get_one(user_id)
         payload = request.get_json(silent=True)
         errors = user_schema_edit.validate(payload)
-
-        if valid_user.username != current_user:
-            return response_builder({
-                'status': 'fail',
-                'message': 'You can only edit your data'
-                }, 401)
         
         if errors:
             return errors, 400
@@ -114,6 +108,12 @@ class SingleUserDetails(Resource):
                 'status': 'fail',
                 'message': 'User not found'
                 }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only edit your data'
+                }, 401)
 
         if payload:
             if payload.get('first_name'):
