@@ -9,7 +9,7 @@ class Ride(Base):
 
     __tablename__ = "ride"
 
-    user_id = db.Column(db.String, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     car_name = db.Column(db.String(100), nullable=True)
     departure_time = db.Column(db.String(250), nullable=False)
     seat_count = db.Column(db.Integer, nullable=False)
