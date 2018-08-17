@@ -138,3 +138,26 @@ class SingleUserDetails(Resource):
             'message': 'At least one data field for editing must be provided'
             }, 400)
 
+
+    @jwt_required
+    def delete(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id) 
+
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only delete your account'
+                }, 401)
+
+        valid_user.delete()
+        return response_builder({
+            'status': 'success',
+            'message': 'Your account has been deleted'
+            }, 401)
