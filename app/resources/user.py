@@ -113,7 +113,7 @@ class SingleUserDetails(Resource):
             return response_builder({
                 'status': 'fail',
                 'message': 'You can only edit your data'
-                }, 401)
+                }, 403)
 
         if payload:
             if payload.get('first_name'):
@@ -177,10 +177,10 @@ class SingleUserDetails(Resource):
             return response_builder({
                 'status': 'fail',
                 'message': 'You can only delete your account'
-                }, 401)
+                }, 403)
 
         valid_user.delete()
         return response_builder({
             'status': 'success',
             'message': 'Your account has been deleted'
-            }, 401)
+            })
