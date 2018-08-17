@@ -19,7 +19,7 @@ class User(Base):
     user_image = db.Column(db.String(200), nullable=True)
     is_social = db.Column(db.Boolean, default=False, nullable=True)
     reg_type = db.Column(db.String(50), default='regular', nullable=True)
-    rides = db.relationship('Ride', backref='user', lazy=True)
+    rides = db.relationship('Ride', backref='user', lazy=True, cascade='all, delete-orphan')
     rates = db.relationship('Rate', backref='user', lazy=True)
 
 

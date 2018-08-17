@@ -7,8 +7,8 @@ class Rate(Base):
 
     __tablename__ = "rate"
 
-    user_id = db.Column(db.String, db.ForeignKey('user.id'), nullable=False)
-    ride_id = db.Column(db.String, db.ForeignKey('ride.id'), nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    ride_id = db.Column(db.String, db.ForeignKey('ride.id', ondelete='SET NULL'), nullable=False)
     rate_status = db.Column(db.Integer, default=0, nullable=False)
 
     def __init__(self, **kwargs):

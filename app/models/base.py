@@ -10,7 +10,7 @@ class Base(db.Model):
 
     __abstract__ = True
 
-    id = db.Column(db.String, primary_key=True, default=generate_uuid)
+    id = db.Column(db.String, primary_key=True, default=generate_uuid, unique=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime,
                           default=datetime.utcnow, onupdate=datetime.utcnow)
