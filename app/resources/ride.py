@@ -13,7 +13,7 @@ ride_schema = RideSchema()
 
 
 class Rides(Resource):
-    """Resource calss to create and retrieve rides"""
+    """Resource class to create and retrieve rides"""
 
     @jwt_required
     def post(self):
@@ -84,4 +84,36 @@ class Rides(Resource):
                 'status': 'success',
                 'message': 'Rides not available yet'
                 })
-            
+
+
+class UserRides(Resource):
+    """Resource class to retrieve rides created by a user"""
+
+    @jwt_required
+    def get(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id)
+        user_rides = valid_user.rides
+        
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only view rides you created'
+                }, 403)
+
+        if user_rides:
+            return response_builder({
+                'status': 'success',
+                'rides': rides_schema.dump(user_rides).data
+                })
+        else:
+            return response_builder({
+                'status': 'success',
+                'message': 'You have not created any ride yet'
+                })
