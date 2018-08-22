@@ -12,7 +12,7 @@ rides_schema = RideSchema(many=True)
 ride_schema = RideSchema()
 
 
-class Ride(Resource):
+class Rides(Resource):
     """Resource calss to create and retrieve rides"""
 
     @jwt_required
@@ -68,4 +68,20 @@ class Ride(Resource):
             'status': 'Fail',
             'message': 'To create a ride, at least one data field must be provided'
             }, 400)
+
+
+    @jwt_required
+    def get(self):
+        all_rides = Ride.get_all()
+      
+        if all_rides:
+            return response_builder({
+                'status': 'success',
+                'rides': rides_schema.dump(all_rides).data
+                })
+        else:
+            return response_builder({
+                'status': 'success',
+                'message': 'Rides not available yet'
+                })
             
