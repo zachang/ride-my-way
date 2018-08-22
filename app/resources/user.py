@@ -89,7 +89,7 @@ class UserDetails(Resource):
         else:
             return response_builder({
                 'status': 'success',
-                'user': 'users not available yet'
+                'message': 'users not available yet'
                 })
 
 class SingleUserDetails(Resource):
