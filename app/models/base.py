@@ -2,15 +2,17 @@
 from app import db
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
+from app.utils.generate_uuid import generate_uuid
+
 
 
 class Base(db.Model):
 
     __abstract__ = True
 
-    id = db.Column(db.String, primary_key=True)
-    createdAt = db.Column(db.DateTime, default=datetime.utcnow)
-    updatedAt = db.Column(db.DateTime,
+    id = db.Column(db.String, primary_key=True, default=generate_uuid, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime,
                           default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
@@ -36,6 +38,11 @@ class Base(db.Model):
     def get_all(cls):
         """Return all the data in the model."""
         return cls.query.all()
+
+    @classmethod
+    def get_one(cls, data):
+        """Return all the data in the model."""
+        return cls.query.get(data)
 
     
     @classmethod

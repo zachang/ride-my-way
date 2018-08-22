@@ -10,7 +10,8 @@ db = SQLAlchemy()
 
 def create_app(config_name):
 
-    from app.resources.user import UserRegistration, UserLogin
+    from app.resources.user import (UserRegistration, UserLogin, UserDetails, SingleUserDetails)
+    from app.resources.ride import (Rides, UserRides)
 
     """
     wrapper for the creation of a new Flask object
@@ -27,5 +28,10 @@ def create_app(config_name):
 
     api.add_resource(UserRegistration, '/register', '/register/')
     api.add_resource(UserLogin, '/login', '/login/')
+    api.add_resource(UserDetails, '/users', '/users/')
+    api.add_resource(SingleUserDetails, '/users/<string:user_id>', '/users/<string:user_id>')
+
+    api.add_resource(Rides, '/rides', '/rides/')
+    api.add_resource(UserRides, '/rides/user/<string:user_id>', '/rides/user/<string:user_id>/')
 
     return app

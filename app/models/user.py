@@ -10,24 +10,23 @@ class User(Base):
 
     __tablename__ = "user"
 
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True, nullable=False)
-    firstName = db.Column(db.String(250), nullable=False)
-    lastName = db.Column(db.String(250), nullable=False)
+    first_name = db.Column(db.String(250), nullable=False)
+    last_name = db.Column(db.String(250), nullable=False)
     username = db.Column(db.String(250), unique=True, nullable=False)
-    phoneNo = db.Column(db.String(50), unique=True , nullable=True)
+    phone_no = db.Column(db.String(50), unique=True , nullable=True)
     email = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
-    userImage = db.Column(db.String(200), nullable=True)
-    isSocial = db.Column(db.Boolean, default=False, nullable=True)
-    regType = db.Column(db.String(50), default='regular', nullable=True)
-    rides = db.relationship('Ride', backref='user', lazy=True)
+    user_image = db.Column(db.String(200), nullable=True)
+    is_social = db.Column(db.Boolean, default=False, nullable=True)
+    reg_type = db.Column(db.String(50), default='regular', nullable=True)
+    rides = db.relationship('Ride', backref='user', lazy=True, cascade='all, delete-orphan')
     rates = db.relationship('Rate', backref='user', lazy=True)
 
 
     def __init__(self, **kwargs):
         """initialize class."""
-        self.firstName = kwargs['firstName']
-        self.lastName = kwargs['lastName']
+        self.first_name = kwargs['first_name']
+        self.last_name = kwargs['last_name']
         self.username = kwargs['username']
         self.email = kwargs['email']
         self.password = kwargs['password']
