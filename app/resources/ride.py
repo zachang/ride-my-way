@@ -74,12 +74,25 @@ class Rides(Resource):
     @jwt_required
     def get(self):
         all_rides = Ride.get_all()
-      
         if all_rides:
+            available_rides = set([])
+            for all_ride in all_rides:
+                if not all_ride.available:
+                    continue
+                available_rides.add(all_ride)
+
+            if available_rides:
+                rides = rides_schema.dump(available_rides).data
+                return response_builder({
+                    'status': 'success',
+                    'rides': rides,
+                    'count': len(rides)
+                    })
+
             return response_builder({
-                'status': 'success',
-                'rides': rides_schema.dump(all_rides).data
-                })
+                    'status': 'success',
+                    'message': 'No available rides yet'
+                    })
         else:
             return response_builder({
                 'status': 'success',
@@ -108,10 +121,12 @@ class UserRides(Resource):
                 }, 403)
 
         user_rides = valid_user.rides
+        rides = rides_schema.dump(user_rides).data
         if user_rides:
             return response_builder({
                 'status': 'success',
-                'rides': rides_schema.dump(user_rides).data
+                'rides': rides,
+                'count': len(rides)
                 })
         else:
             return response_builder({
