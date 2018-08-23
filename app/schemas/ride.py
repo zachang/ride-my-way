@@ -21,3 +21,19 @@ class RideSchema(Schema):
     completed = fields.String()
     user = fields.Nested(UserSchema, only=['id', 'first_name', 'last_name', 
     'username', 'phone_no', 'user_image', 'email'])
+
+
+class RideSchemaEdit(Schema):
+    car_name = fields.String(dump_to='carName',
+    validate=[validate.Length(min=2, max=100)],
+    error_messages={
+        'required': {'message': 'A carName is required.'}
+    })
+    departure_time = fields.DateTime(dump_to='departureTime',
+    error_messages={
+        'required': {'message': 'A departureTime is required.'}
+    })
+    seat_count = fields.Integer(dump_to='seatCount',
+    error_messages={
+        'required': {'message': 'You need to specify the number of seats your car can accommodate.'}
+    })
