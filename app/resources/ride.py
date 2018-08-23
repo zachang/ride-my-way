@@ -4,12 +4,13 @@ from flask_restful import Resource
 from flask_jwt_extended import (jwt_required, get_jwt_identity)
 from app.models.ride import Ride
 from app.models.user import User
-from app.schemas.ride import RideSchema
+from app.schemas.ride import RideSchema, RideSchemaEdit
 from app.utils.response_builder import response_builder
 from app.utils.to_lower_strip import to_lower_strip
 
 rides_schema = RideSchema(many=True)
 ride_schema = RideSchema()
+ride_schema_edit = RideSchemaEdit()
 
 
 class Rides(Resource):
@@ -150,7 +151,7 @@ class UserRides(Resource):
         if valid_user.id != current_user:
             return response_builder({
                 'status': 'fail',
-                'message': 'You can only update rides you created'
+                'message': 'You can only delete rides you created'
                 }, 403)
 
         user_rides = valid_user.rides
@@ -170,3 +171,59 @@ class UserRides(Resource):
                 'status': 'success',
                 'message': 'You have not created any ride yet'
                 })
+
+
+class UserSingleRide(Resource):
+    """Resource class to update a ride created by a user"""
+
+    @jwt_required
+    def put(self, ride_id):
+        payload = request.get_json(silent=True)
+        valid_user = User.get_one(get_jwt_identity())
+        errors = ride_schema_edit.validate(payload)
+        
+        if errors:
+            return errors, 400
+
+        if payload:
+            user_rides = valid_user.rides
+            if user_rides:
+                ride_to_update = []
+                for user_ride in user_rides:
+                    if user_ride.id == ride_id:
+                        ride_to_update.append(user_ride)
+                        break
+
+                if payload.get('departure_time'):
+                    departure = payload['departure_time']
+                    _format = '%Y-%m-%d %H:%M:%S'
+
+                    if datetime.datetime.strptime(departure, _format) < datetime.datetime.utcnow():
+                        return response_builder({
+                            'status': 'fail',
+                            'message': 'Your departure time can not be less than the current time'
+                            }, 403)
+                    else:
+                        ride_to_update[0].departure_time = payload.get('departure_time')
+
+                if payload.get('car_name'):
+                    ride_to_update[0].car_name = to_lower_strip(payload.get('car_name'))
+                if payload.get('seat_count'):
+                    ride_to_update[0].seat_count = payload.get('seat_count')
+
+                ride_to_update[0].save()
+                return response_builder({
+                    'status': 'success',
+                    'message': 'Edit completed',
+                    'ride': ride_schema.dump(ride_to_update[0]).data
+                    })
+            else:
+                return response_builder({
+                    'status': 'success',
+                    'message': 'You have not created any ride yet'
+                    })
+        else: 
+            return response_builder({
+            'status': 'Fail',
+            'message': 'At least one data field for editing must be provided'
+            }, 400)
