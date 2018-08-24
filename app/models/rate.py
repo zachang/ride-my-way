@@ -3,19 +3,18 @@ from datetime import datetime
 from app.models.base import Base
 
 class Rate(Base):
-    """Define fields for Ride."""
+    """Define fields for Rate."""
 
     __tablename__ = "rate"
 
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True, nullable=False)
-    userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rideId = db.Column(db.Integer, db.ForeignKey('ride.id'), nullable=False)
-    rateStatus = db.Column(db.Integer, default=0, nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    ride_id = db.Column(db.String, db.ForeignKey('ride.id', ondelete='SET NULL'), nullable=False)
+    rate_status = db.Column(db.Integer, default=0, nullable=False)
 
     def __init__(self, **kwargs):
         """initialize class."""
-        self.userId = kwargs['userId']
-        self.rideId = kwargs['rideId']
+        self.user_id = kwargs['user_id']
+        self.ride_id = kwargs['ride_id']
 
 
     def __repr__(self):

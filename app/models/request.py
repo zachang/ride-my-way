@@ -7,16 +7,15 @@ class Request(Base):
 
     __tablename__ = "request"
 
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True, nullable=False)
-    userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rideId = db.Column(db.Integer, db.ForeignKey('ride.id'), nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=False)
+    ride_id = db.Column(db.String, db.ForeignKey('ride.id', ondelete='CASCADE'), nullable=False)
     status = db.Column(db.String(10), server_default='pending', nullable=True)
 
 
     def __init__(self, **kwargs):
         """initialize class."""
-        self.userId = kwargs['userId']
-        self.rideId = kwargs['rideId']
+        self.user_id = kwargs['user_id']
+        self.ride_id = kwargs['ride_id']
 
 
     def __repr__(self):
