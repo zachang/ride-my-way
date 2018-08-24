@@ -37,3 +37,7 @@ class RideSchemaEdit(Schema):
     error_messages={
         'required': {'message': 'You need to specify the number of seats your car can accommodate.'}
     })
+    user_id = fields.String(required=True, dump_to='userId',
+    error_messages={
+        'required': {'message': 'A userId is required.'}
+    })
