@@ -4,6 +4,7 @@ from flask_jwt_extended import (create_access_token,
  jwt_required, get_jwt_identity, get_raw_jwt)
 from app.models.user import User
 from app.schemas.user import UserSchema, UserSchemaEdit
+from app.schemas.ride import RideSchema
 from app.utils.response_builder import response_builder
 from app.utils.to_lower_strip import to_lower_strip
 
@@ -11,6 +12,7 @@ users_schema = UserSchema(many=True)
 user_schema = UserSchema()
 users_schema_edit = UserSchemaEdit(many=True)
 user_schema_edit = UserSchemaEdit()
+rides_schema = RideSchema(many=True)
  
 
 class UserRegistration(Resource):
@@ -184,3 +186,38 @@ class SingleUserDetails(Resource):
             'status': 'success',
             'message': 'Your account has been deleted'
             })
+
+
+class UserRides(Resource):
+    """Resource class to retrieve, delete and update rides created by a user"""
+
+    @jwt_required
+    def get(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id)
+        
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only view rides you created'
+                }, 403)
+
+        user_rides = valid_user.rides
+        rides = rides_schema.dump(user_rides).data
+        if user_rides:
+            return response_builder({
+                'status': 'success',
+                'rides': rides,
+                'count': len(rides)
+                })
+        else:
+            return response_builder({
+                'status': 'success',
+                'message': 'You have not created any ride yet'
+                })

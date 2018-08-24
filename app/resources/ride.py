@@ -102,41 +102,6 @@ class Rides(Resource):
                 })
 
 
-class UserRides(Resource):
-    """Resource class to retrieve, delete and update rides created by a user"""
-
-    @jwt_required
-    def get(self, user_id):
-        current_user = get_jwt_identity()
-        valid_user = User.get_one(user_id)
-        
-        if not valid_user:
-            return response_builder({
-                'status': 'fail',
-                'message': 'User not found'
-                }, 404)
-
-        if valid_user.id != current_user:
-            return response_builder({
-                'status': 'fail',
-                'message': 'You can only view rides you created'
-                }, 403)
-
-        user_rides = valid_user.rides
-        rides = rides_schema.dump(user_rides).data
-        if user_rides:
-            return response_builder({
-                'status': 'success',
-                'rides': rides,
-                'count': len(rides)
-                })
-        else:
-            return response_builder({
-                'status': 'success',
-                'message': 'You have not created any ride yet'
-                })
-
-
     @jwt_required
     def delete(self, user_id):
         current_user = get_jwt_identity()
