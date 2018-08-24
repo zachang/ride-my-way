@@ -41,3 +41,10 @@ class RideSchemaEdit(Schema):
     error_messages={
         'required': {'message': 'A userId is required.'}
     })
+
+
+class RideSchemaDelete(Schema):
+    user_id = fields.String(required=True, dump_to='userId',
+    error_messages={
+        'required': {'message': 'A userId is required.'}
+    })

@@ -4,7 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import (jwt_required, get_jwt_identity)
 from app.models.ride import Ride
 from app.models.user import User
-from app.schemas.ride import RideSchema, RideSchemaEdit
+from app.schemas.ride import RideSchema, RideSchemaEdit, RideSchemaDelete
 from app.utils.response_builder import response_builder
 from app.utils.to_lower_strip import to_lower_strip
 from app.utils.verify_ride_id import verify_ride_decorator
@@ -12,6 +12,7 @@ from app.utils.verify_ride_id import verify_ride_decorator
 rides_schema = RideSchema(many=True)
 ride_schema = RideSchema()
 ride_schema_edit = RideSchemaEdit()
+ride_schema_delete = RideSchemaDelete()
 
 
 class Rides(Resource):
@@ -102,43 +103,6 @@ class Rides(Resource):
                 })
 
 
-    @jwt_required
-    def delete(self, user_id):
-        current_user = get_jwt_identity()
-        valid_user = User.get_one(user_id)
-
-
-        if not valid_user:
-            return response_builder({
-                'status': 'fail',
-                'message': 'User not found'
-                }, 404)
-
-        if valid_user.id != current_user:
-            return response_builder({
-                'status': 'fail',
-                'message': 'You can only delete rides you created'
-                }, 403)
-
-        user_rides = valid_user.rides
-        if user_rides:
-            if user_rides[0].completed in ['False', 'cancelled']:
-                user_rides[0].delete()
-                return response_builder({
-                    'status': 'success',
-                    'message': 'Ride deleted'
-                    })
-            return response_builder({
-                    'status': 'fail',
-                    'message': 'You can not delete a completed Ride'
-                    }, 403)
-        else:
-            return response_builder({
-                'status': 'success',
-                'message': 'You have not created any ride yet'
-                })
-
-
 class UserSingleRide(Resource):
     """Resource class to update a ride created by a user"""
 
@@ -207,4 +171,59 @@ class UserSingleRide(Resource):
             return response_builder({
             'status': 'Fail',
             'message': 'At least one data field for editing must be provided'
+            }, 400)
+
+
+    @jwt_required
+    @verify_ride_decorator(Ride)
+    def delete(self, ride_id):
+        payload = request.get_json(silent=True)
+        errors = ride_schema_edit.validate(payload)
+        
+        if errors:
+            return errors, 400
+
+        if payload:
+            current_user = get_jwt_identity()       
+            valid_user = User.get_one(payload.get('user_id'))
+
+            if not valid_user:
+                return response_builder({
+                    'status': 'fail',
+                    'message': 'User not found'
+                    }, 404)
+
+            if valid_user.id != current_user:
+                return response_builder({
+                    'status': 'fail',
+                    'message': 'You can only delete rides you created'
+                    }, 403)
+
+            user_rides = valid_user.rides
+            if user_rides:
+                ride_to_delete = []
+                for user_ride in user_rides:
+                    if user_ride.id == ride_id:
+                        ride_to_delete.append(user_ride)
+                        break
+
+                if ride_to_delete[0].completed in ['False', 'cancelled']:
+                    ride_to_delete[0].delete()
+                    return response_builder({
+                        'status': 'success',
+                        'message': 'Ride deleted'
+                        })    
+                return response_builder({
+                        'status': 'fail',
+                        'message': 'You can not delete a completed Ride'
+                        }, 403)
+            else:
+                return response_builder({
+                    'status': 'success',
+                    'message': 'You have not created any ride yet'
+                    })
+        else: 
+            return response_builder({
+            'status': 'Fail',
+            'message': 'A data field must be provided'
             }, 400)
