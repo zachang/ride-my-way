@@ -106,7 +106,7 @@ class Rides(Resource):
 
 
 class UserSingleRide(Resource):
-    """Resource class to update a ride created by a user"""
+    """Resource class to update and delete a ride created by a user"""
 
     @jwt_required
     @verify_ride_decorator(Ride)

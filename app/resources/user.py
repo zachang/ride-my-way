@@ -189,7 +189,7 @@ class SingleUserDetails(Resource):
 
 
 class UserRides(Resource):
-    """Resource class to retrieve, delete and update rides created by a user"""
+    """Resource class to retrieve created by a user"""
 
     @jwt_required
     def get(self, user_id):
