@@ -10,6 +10,7 @@ class Request(Base):
     user_id = db.Column(db.String, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=False)
     ride_id = db.Column(db.String, db.ForeignKey('ride.id', ondelete='CASCADE'), nullable=False)
     status = db.Column(db.String(10), server_default='pending', nullable=True)
+    completed = db.Column(db.String(10), server_default='no', nullable=False)
 
 
     def __init__(self, **kwargs):

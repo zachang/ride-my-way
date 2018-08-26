@@ -34,7 +34,7 @@ class Rides(Resource):
 
         restrict_ride = valid_user.rides
         for ride in restrict_ride:
-            if ride.completed == 'False' and ride.available:
+            if ride.completed == 'no' and ride.available:
                 return response_builder({
                     'status': 'fail',
                     'message': 'You have an available ride and can not create another'
@@ -56,6 +56,8 @@ class Rides(Resource):
 
             ride = Ride(
                         car_name=to_lower_strip(payload['car_name']),
+                        start_pos=to_lower_strip(payload['start_pos']),
+                        destination=to_lower_strip(payload['destination']),
                         departure_time=departure,
                         seat_count=payload['seat_count']
                     )
@@ -138,6 +140,11 @@ class UserSingleRide(Resource):
                     if user_ride.id == ride_id:
                         ride_to_update.append(user_ride)
                         break
+                    else:
+                        return response_builder({
+                            'status': 'fail',
+                            'message': 'You can only update rides you created'
+                            }, 403) 
                     
                 if payload.get('departure_time'):
                     departure_time = payload.get('departure_time')
@@ -155,6 +162,10 @@ class UserSingleRide(Resource):
                     ride_to_update[0].car_name = to_lower_strip(payload.get('car_name'))
                 if payload.get('seat_count'):
                     ride_to_update[0].seat_count = payload.get('seat_count')
+                if payload.get('start_pos'):
+                    ride_to_update[0].start_pos = to_lower_strip(payload.get('start_pos'))
+                if payload.get('destination'):
+                    ride_to_update[0].destination = to_lower_strip(payload.get('destination'))
 
                 ride_to_update[0].save()
                 return response_builder({
@@ -206,8 +217,14 @@ class UserSingleRide(Resource):
                     if user_ride.id == ride_id:
                         ride_to_delete.append(user_ride)
                         break
+                    else:
+                        return response_builder({
+                            'status': 'fail',
+                            'message': 'You can only delete rides you created'
+                            }, 403) 
+                
 
-                if ride_to_delete[0].completed in ['False', 'cancelled']:
+                if ride_to_delete[0].completed in ['no', 'cancelled']:
                     ride_to_delete[0].delete()
                     return response_builder({
                         'status': 'success',

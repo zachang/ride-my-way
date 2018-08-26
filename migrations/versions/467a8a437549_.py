@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 51478c19457b
+Revision ID: 467a8a437549
 Revises: 
-Create Date: 2018-08-22 14:15:33.476045
+Create Date: 2018-08-26 11:09:23.217146
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '51478c19457b'
+revision = '467a8a437549'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -43,6 +43,8 @@ def upgrade():
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('user_id', sa.String(), nullable=False),
     sa.Column('car_name', sa.String(length=100), nullable=True),
+    sa.Column('start_pos', sa.String(length=100), nullable=False),
+    sa.Column('destination', sa.String(length=100), nullable=False),
     sa.Column('departure_time', sa.DateTime(), nullable=True),
     sa.Column('seat_count', sa.Integer(), nullable=False),
     sa.Column('seat_taken', sa.Integer(), nullable=False),
@@ -71,6 +73,7 @@ def upgrade():
     sa.Column('user_id', sa.String(), nullable=False),
     sa.Column('ride_id', sa.String(), nullable=False),
     sa.Column('status', sa.String(length=10), server_default='pending', nullable=True),
+    sa.Column('completed', sa.String(length=10), server_default='no', nullable=False),
     sa.ForeignKeyConstraint(['ride_id'], ['ride.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),

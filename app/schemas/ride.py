@@ -8,6 +8,15 @@ class RideSchema(Schema):
     error_messages={
         'required': {'message': 'A carName is required.'}
     })
+    start_pos = fields.String(required=True, dump_to='startPos',
+    validate=[validate.Length(min=2, max=100)],
+    error_messages={
+        'required': {'message': 'A startPos is required.'}
+    })
+    destination = fields.String(required=True, validate=[validate.Length(min=2, max=100)],
+    error_messages={
+        'required': {'message': 'A destination is required.'}
+    })
     departure_time = fields.DateTime(required=True, dump_to='departureTime',
     error_messages={
         'required': {'message': 'A departureTime is required.'}
@@ -24,10 +33,17 @@ class RideSchema(Schema):
 
 
 class RideSchemaEdit(Schema):
-    car_name = fields.String(dump_to='carName',
-    validate=[validate.Length(min=2, max=100)],
+    car_name = fields.String(dump_to='carName', validate=[validate.Length(min=2, max=100)],
     error_messages={
         'required': {'message': 'A carName is required.'}
+    })
+    start_pos = fields.String(dump_to='startPos', validate=[validate.Length(min=2, max=100)],
+    error_messages={
+        'required': {'message': 'A startPos is required.'}
+    })
+    destination = fields.String(validate=[validate.Length(min=2, max=100)],
+    error_messages={
+        'required': {'message': 'A destination is required.'}
     })
     departure_time = fields.DateTime(dump_to='departureTime',
     error_messages={
