@@ -36,15 +36,18 @@ class Base(db.Model):
     
     @classmethod
     def get_all(cls):
-        """Return all the data in the model."""
+        """Returns all the data in the model."""
         return cls.query.all()
 
     @classmethod
     def get_one(cls, data):
-        """Return all the data in the model."""
+        """Returns single data in the model."""
         return cls.query.get(data)
-
     
     @classmethod
     def filter_by_any(cls, **kwargs):
         return cls.query.filter_by(**kwargs).first()
+
+    @classmethod
+    def filter_any(cls, **kwargs):
+        return cls.query.filter_by(**kwargs)

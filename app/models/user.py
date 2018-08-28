@@ -3,6 +3,7 @@ from app import db
 from app.models.base import Base
 from app.models.ride import Ride
 from app.models.rate import Rate
+from app.models.request import Request
 
 
 class User(Base):
@@ -21,6 +22,7 @@ class User(Base):
     reg_type = db.Column(db.String(50), default='regular', nullable=True)
     rides = db.relationship('Ride', backref='user', lazy=True, cascade='all, delete-orphan')
     rates = db.relationship('Rate', backref='user', lazy=True)
+    request = db.relationship('Request', backref='user', lazy=True)
 
 
     def __init__(self, **kwargs):
