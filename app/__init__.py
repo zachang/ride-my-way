@@ -13,6 +13,7 @@ def create_app(config_name):
     from app.resources.user import (UserRegistration, UserLogin, UserDetails, 
     SingleUserDetails, UserRides)
     from app.resources.ride import (Rides, UserSingleRide)
+    from app.resources.request import (CreatRequest)
 
     """
     wrapper for the creation of a new Flask object
@@ -27,13 +28,18 @@ def create_app(config_name):
     app.config.from_object(app_config[config_name])
     db.init_app(app)
 
+    # user routes
     api.add_resource(UserRegistration, '/register', '/register/')
     api.add_resource(UserLogin, '/login', '/login/')
     api.add_resource(UserDetails, '/users', '/users/')
     api.add_resource(SingleUserDetails, '/users/<string:user_id>', '/users/<string:user_id>')
     api.add_resource(UserRides, '/users/<string:user_id>/rides', '/users/<string:user_id>/rides/')
 
+    # ride routes
     api.add_resource(Rides, '/rides', '/rides/')
     api.add_resource(UserSingleRide, '/rides/<string:ride_id>', '/rides/<string:ride_id>/')
+
+    # request routes
+    api.add_resource(CreatRequest, '/requests', '/requests/')
 
     return app

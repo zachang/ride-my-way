@@ -2,6 +2,7 @@ from app import db
 from datetime import datetime
 from app.models.base import Base
 from app.models.rate import Rate
+from app.models.request import Request
 
 
 class Ride(Base):
@@ -19,6 +20,7 @@ class Ride(Base):
     available = db.Column(db.Boolean, default=False, nullable=False)
     completed = db.Column(db.String(10), default='no', nullable=False)
     rates = db.relationship('Rate', backref='ride', lazy=True)
+    request = db.relationship('Request', backref='ride', lazy=True)
 
 
     def __init__(self, **kwargs):
