@@ -109,7 +109,6 @@ class UserSingleRide(Resource):
     """Resource class to update and delete a ride created by a user"""
 
     @jwt_required
-    @verify_ride_decorator(Ride)
     def put(self, ride_id):
         payload = request.get_json(silent=True)
         errors = ride_schema_edit.validate(payload)
@@ -133,51 +132,58 @@ class UserSingleRide(Resource):
                     'message': 'You can only edit rides you created'
                     }, 403)
 
-            user_rides = valid_user.rides
-            if user_rides:
-                ride_to_update = []
-                for user_ride in user_rides:
-                    if user_ride.id == ride_id:
-                        ride_to_update.append(user_ride)
-                        break
-                    else:
+            ride = Ride.get_one(ride_id)
+            if ride:
+                if valid_user.id == ride.user_id:
+                    if ride.created_at < datetime.datetime.utcnow():
                         return response_builder({
                             'status': 'fail',
-                            'message': 'You can only update rides you created'
+                            'message': 'You cannot update a ride created in the past'
                             }, 403) 
-                    
-                if payload.get('departure_time'):
-                    departure_time = payload.get('departure_time')
-                    _format = '%Y-%m-%d %H:%M:%S'
+                        
+                    if ride.available:
+                        if payload.get('departure_time'):
+                            departure_time = payload.get('departure_time')
+                            _format = '%Y-%m-%d %H:%M:%S'
 
-                    if datetime.datetime.strptime(departure_time, _format) < datetime.datetime.utcnow():
+                            if datetime.datetime.strptime(departure_time, _format) < datetime.datetime.utcnow():
+                                return response_builder({
+                                    'status': 'fail',
+                                    'message': 'Your departure date/time must be at least current'
+                                    }, 403)
+                            else:
+                                ride.departure_time = departure_time
+
+                        if payload.get('car_name'):
+                            ride.car_name = to_lower_strip(payload.get('car_name'))
+                        if payload.get('seat_count'):
+                            ride.seat_count = payload.get('seat_count')
+                        if payload.get('start_pos'):
+                            ride.start_pos = to_lower_strip(payload.get('start_pos'))
+                        if payload.get('destination'):
+                            ride.destination = to_lower_strip(payload.get('destination'))
+
+                        ride.save()
                         return response_builder({
-                            'status': 'fail',
-                            'message': 'Your departure date/time must be at least current'
-                            }, 403)
+                            'status': 'success',
+                            'message': 'Edit completed',
+                            'ride': ride_schema.dump(ride).data
+                            })
                     else:
-                        ride_to_update[0].departure_time = departure_time
-
-                if payload.get('car_name'):
-                    ride_to_update[0].car_name = to_lower_strip(payload.get('car_name'))
-                if payload.get('seat_count'):
-                    ride_to_update[0].seat_count = payload.get('seat_count')
-                if payload.get('start_pos'):
-                    ride_to_update[0].start_pos = to_lower_strip(payload.get('start_pos'))
-                if payload.get('destination'):
-                    ride_to_update[0].destination = to_lower_strip(payload.get('destination'))
-
-                ride_to_update[0].save()
-                return response_builder({
-                    'status': 'success',
-                    'message': 'Edit completed',
-                    'ride': ride_schema.dump(ride_to_update[0]).data
-                    })
+                       return response_builder({
+                            'status': 'fail',
+                            'message': 'This ride is not available and can not be updated'
+                            }, 403) 
+                else:
+                    return response_builder({
+                    'status': 'fail',
+                    'message': 'You can only update your own ride'
+                    }, 403) 
             else:
                 return response_builder({
-                    'status': 'success',
-                    'message': 'You have not created any ride yet'
-                    })
+                    'status': 'fail',
+                    'message': 'Ride not found'
+                    }, 404)
         else: 
             return response_builder({
             'status': 'Fail',

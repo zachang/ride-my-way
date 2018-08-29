@@ -45,14 +45,8 @@ class RideSchemaEdit(Schema):
     error_messages={
         'required': {'message': 'A destination is required.'}
     })
-    departure_time = fields.DateTime(dump_to='departureTime',
-    error_messages={
-        'required': {'message': 'A departureTime is required.'}
-    })
-    seat_count = fields.Integer(dump_to='seatCount',
-    error_messages={
-        'required': {'message': 'You need to specify the number of seats your car can accommodate.'}
-    })
+    departure_time = fields.DateTime(dump_to='departureTime')
+    seat_count = fields.Integer(dump_to='seatCount')
     user_id = fields.String(required=True, dump_to='userId',
     error_messages={
         'required': {'message': 'A userId is required.'}
