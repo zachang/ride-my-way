@@ -51,7 +51,6 @@ class CreatRequest(Resource):
                                     response_builder)
                                 
                         else:
-                            print('>>>>', ride.id)
                             return response_builder({
                                 'status': 'fail',
                                 'message': 'You can not make a request for your own ride'
