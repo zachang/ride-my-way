@@ -11,7 +11,7 @@ db = SQLAlchemy()
 def create_app(config_name):
 
     from app.resources.user import (UserRegistration, UserLogin, UserDetails, 
-    SingleUserDetails, UserRides)
+    SingleUserDetails, UserRides, UserRequest)
     from app.resources.ride import (Rides, UserSingleRide)
     from app.resources.request import (CreatRequest, CancelRideRequest)
 
@@ -34,6 +34,7 @@ def create_app(config_name):
     api.add_resource(UserDetails, '/users', '/users/')
     api.add_resource(SingleUserDetails, '/users/<string:user_id>', '/users/<string:user_id>')
     api.add_resource(UserRides, '/users/<string:user_id>/rides', '/users/<string:user_id>/rides/')
+    api.add_resource(UserRequest, '/users/<string:user_id>/requests', '/users/<string:user_id>/requests/')
 
     # ride routes
     api.add_resource(Rides, '/rides', '/rides/')
