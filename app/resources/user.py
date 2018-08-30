@@ -5,6 +5,7 @@ from flask_jwt_extended import (create_access_token,
 from app.models.user import User
 from app.schemas.user import UserSchema, UserSchemaEdit
 from app.schemas.ride import RideSchema
+from app.schemas.request import RequestSchema
 from app.utils.response_builder import response_builder
 from app.utils.to_lower_strip import to_lower_strip
 
@@ -13,6 +14,7 @@ user_schema = UserSchema()
 users_schema_edit = UserSchemaEdit(many=True)
 user_schema_edit = UserSchemaEdit()
 rides_schema = RideSchema(many=True)
+requests_schema = RequestSchema(many=True)
  
 
 class UserRegistration(Resource):
@@ -220,4 +222,38 @@ class UserRides(Resource):
             return response_builder({
                 'status': 'success',
                 'message': 'You have not created any ride yet'
+                })
+
+class UserRequest(Resource):
+    """Resource class to retrieve created by a user"""
+
+    @jwt_required
+    def get(self, user_id):
+        current_user = get_jwt_identity()
+        valid_user = User.get_one(user_id)
+        
+        if not valid_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'User not found'
+                }, 404)
+
+        if valid_user.id != current_user:
+            return response_builder({
+                'status': 'fail',
+                'message': 'You can only view your requests'
+                }, 403)
+
+        user_requests = valid_user.request
+        requests = requests_schema.dump(user_requests).data
+        if user_requests:
+            return response_builder({
+                'status': 'success',
+                'rides': requests,
+                'count': len(requests)
+                })
+        else:
+            return response_builder({
+                'status': 'success',
+                'message': 'You have no ride requests yet'
                 })
