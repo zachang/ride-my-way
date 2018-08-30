@@ -1,5 +1,5 @@
 from flask import request, jsonify
-import datetime
+from datetime import datetime, date, timedelta
 from flask_restful import Resource
 from flask_jwt_extended import (jwt_required, get_jwt_identity)
 from app.models.ride import Ride
@@ -23,6 +23,9 @@ class Rides(Resource):
         errors = ride_schema.validate(payload)
         current_user = get_jwt_identity()
         valid_user = User.get_one(current_user)
+
+        if errors:
+            return errors, 400
        
         if not valid_user:
             return response_builder({
@@ -40,16 +43,24 @@ class Rides(Resource):
                     }, 403)
 
         if payload:
+            today = date.today()
+            before_midnight = datetime.combine(today, datetime.min.time())  + timedelta(hours=23)
             departure = payload['departure_time']
             _format = '%Y-%m-%d %H:%M:%S'
 
             if errors:
                 return errors, 400
 
-            if datetime.datetime.strptime(departure, _format) < datetime.datetime.utcnow():
+            if datetime.strptime(departure, _format) < datetime.utcnow():
                 return response_builder({
                     'status': 'fail',
                     'message': 'Your departure time can not be less than the current time'
+                    }, 403)
+
+            if datetime.strptime(departure, _format) > before_midnight:
+                return response_builder({
+                    'status': 'fail',
+                    'message': 'Your departure time can not be greater 11pm'
                     }, 403)
 
 
@@ -133,7 +144,7 @@ class UserSingleRide(Resource):
 
             ride = Ride.get_one(ride_id)
             if ride:
-                if ride.created_at < datetime.datetime.utcnow():
+                if ride.created_at < datetime.utcnow():
                     return response_builder({
                         'status': 'fail',
                         'message': 'You cannot update a ride created in the past'
@@ -144,7 +155,7 @@ class UserSingleRide(Resource):
                         departure_time = payload.get('departure_time')
                         _format = '%Y-%m-%d %H:%M:%S'
 
-                        if datetime.datetime.strptime(departure_time, _format) < datetime.datetime.utcnow():
+                        if datetime.strptime(departure_time, _format) < datetime.utcnow():
                             return response_builder({
                                 'status': 'fail',
                                 'message': 'Your departure date/time must be at least current'
