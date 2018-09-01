@@ -27,3 +27,12 @@ class CancelRequestSchama(Schema):
     completed = fields.String()
     created_at = fields.DateTime(dump_to='createdAt')
     updated_at = fields.DateTime(dump_to='updatedAt')
+
+
+class ApproveRequestSchama(Schema):
+    user_id = fields.String(dump_to='userId')
+    ride_id = fields.String(dump_to='rideId')
+    status = fields.String()
+    completed = fields.String()
+    created_at = fields.DateTime(dump_to='createdAt')
+    updated_at = fields.DateTime(dump_to='updatedAt')
