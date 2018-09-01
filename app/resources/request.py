@@ -172,22 +172,75 @@ class ApproveRideRequest(Resource):
 
 
             request_approval = Request.query.filter(Request.user_id == current_user,
-             Request.status == 'pending', Request.completed == 'no', Request.id.in_(request_ids))\
-             .update({'status': 'approved'}, synchronize_session='fetch')
+             Request.status.in_(['pending', 'rejected']), Request.completed == 'no', 
+             Request.id.in_(request_ids)).update({'status': 'approved'}, 
+             synchronize_session='fetch')
 
-            request_approval_next = Request.query.filter(Request.user_id == current_user, 
+            request_approval_data = Request.query.filter(Request.user_id == current_user, 
             Request.id.in_(request_ids)).all()
             
             if request_approval:
                 db.session.commit()
                 return response_builder({
                 'status': 'success',
-                'request': approve_request_schema.dump(request_approval_next).data
+                'request': approve_request_schema.dump(request_approval_data).data
                 })
             else:
                 return response_builder({
                     'status': 'fail',
                     'message': 'invalid request_ids, no pending requests for approval or request' +
+                    ' is not associated with current user'
+                    }, 400)
+
+        else:
+           return response_builder({
+                'status': 'fail',
+                'message': 'Data is required in the request payload'
+                }, 400)
+
+
+class RejectRideRequest(Resource):
+    """Resource class for approving one or more ride request"""
+
+    @jwt_required
+    def put(self, request_id=None):
+        payload = request.get_json(silent=True)
+
+        if payload:
+            current_user = get_jwt_identity()
+            request_ids =  payload.get('request_ids', None)
+
+            if request_ids is None:
+                return response_builder(dict(
+                    message='request_ids value is required'), 400)
+
+
+            if not isinstance(request_ids, list):
+                return response_builder(dict(
+                    message='request_ids must be a list'), 400)
+            
+            if len(request_ids) > 10:
+                return response_builder(dict(
+                    message='Sorry, you can not reject more than 10 ride request at a go'), 406)
+
+
+            request_approval = Request.query.filter(Request.user_id == current_user,
+             Request.status.in_(['pending', 'approved']), Request.completed == 'no', Request.id.in_(request_ids))\
+             .update({'status': 'rejected'}, synchronize_session='fetch')
+
+            request_approval_data = Request.query.filter(Request.user_id == current_user, 
+            Request.id.in_(request_ids)).all()
+            
+            if request_approval:
+                db.session.commit()
+                return response_builder({
+                'status': 'success',
+                'request': approve_request_schema.dump(request_approval_data).data
+                })
+            else:
+                return response_builder({
+                    'status': 'fail',
+                    'message': 'invalid request_ids, no pending requests for rejection or request' +
                     ' is not associated with current user'
                     }, 400)
 
