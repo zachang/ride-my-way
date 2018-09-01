@@ -6,12 +6,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.ride import Ride
 from app.models.user import User
 from app.models.request import Request
-from app.schemas.request import RequestSchema, CancelRequestSchama
+from app.schemas.request import (RequestSchema, CancelRequestSchama, ApproveRequestSchama)
 from app.utils.response_builder import response_builder
 from app.utils.save_request import save_request
+from app import db
 
 request_schema = RequestSchema()
 cancel_request_schema = CancelRequestSchama()
+approve_request_schema= ApproveRequestSchama(many=True)
 
 class CreatRequest(Resource):
     """Resource class to create request"""
@@ -110,18 +112,18 @@ class CancelRideRequest(Resource):
                                 return response_builder({
                                     'status': 'success',
                                     'message': cancel_request_schema.dump(request_to_cancel[0]).data
-                                    }, 404)
+                                    })
                             else:
                                return response_builder({
                                     'status': 'fail',
                                     'message': 'Oops! You can not cancel a completed or cancelled'+ 
                                     ' request'
-                                    }, 403) 
+                                    }, 403)
                         else:
                             return response_builder({
                                 'status': 'fail',
                                 'message': 'Oops! request_id invalid or not associated to you'
-                                }, 404)
+                                }, 406)
                     else:
                         return response_builder({
                                 'status': 'fail',
@@ -141,4 +143,56 @@ class CancelRideRequest(Resource):
             return response_builder({
                 'status': 'fail',
                 'message': 'A user_id is required in the request payload'
+                }, 400)
+
+
+class ApproveRideRequest(Resource):
+    """Resource class for approving one or more ride request"""
+
+    @jwt_required
+    def put(self, request_id=None):
+        payload = request.get_json(silent=True)
+
+        if payload:
+            current_user = get_jwt_identity()
+            request_ids =  payload.get('request_ids', None)
+
+            if request_ids is None:
+                return response_builder(dict(
+                    message='request_ids value is required'), 400)
+
+
+            if not isinstance(request_ids, list):
+                return response_builder(dict(
+                    message='request_ids must be a list'), 400)
+            
+            if len(request_ids) > 10:
+                return response_builder(dict(
+                    message='Sorry, you can not approve more than 10 ride request at a go'), 406)
+
+
+            request_approval = Request.query.filter(Request.user_id == current_user,
+             Request.status == 'pending', Request.completed == 'no', Request.id.in_(request_ids))\
+             .update({'status': 'approved'}, synchronize_session='fetch')
+
+            request_approval_next = Request.query.filter(Request.user_id == current_user, 
+            Request.id.in_(request_ids)).all()
+            
+            if request_approval:
+                db.session.commit()
+                return response_builder({
+                'status': 'success',
+                'request': approve_request_schema.dump(request_approval_next).data
+                })
+            else:
+                return response_builder({
+                    'status': 'fail',
+                    'message': 'invalid request_ids, no pending requests for approval or request' +
+                    ' is not associated with current user'
+                    }, 400)
+
+        else:
+           return response_builder({
+                'status': 'fail',
+                'message': 'Data is required in the request payload'
                 }, 400)
