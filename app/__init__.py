@@ -4,6 +4,7 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from instance.config import app_config
+from app.utils.response_builder import response_builder
 
 db = SQLAlchemy()
 
@@ -46,5 +47,23 @@ def create_app(config_name):
     api.add_resource(CancelRideRequest, '/requests/<string:request_id>/cancel', '/requests/<string:request_id>/cancel/')
     api.add_resource(ApproveRideRequest, '/requests/approve', '/requests/approve/')
     api.add_resource(RejectRideRequest, '/requests/reject', '/requests/reject/')
+
+
+    # handle default 404 exceptions with a custom response
+    @app.errorhandler(404)
+    def resource_not_found(error):
+        return response_builder(dict(
+            status='fail',
+            message='The requested URL was not found on the server'), 
+            404)
+
+
+    # handle default 500 exceptions with a custom response
+    @app.errorhandler(500)
+    def resource_not_found(error):
+        return response_builder(dict(
+            status='fail',
+            message='The server encountered an internal error'), 
+            500)
 
     return app

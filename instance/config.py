@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+from datetime import timedelta
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -10,6 +11,7 @@ class Config(object):
     CSRF_ENABLED = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('SECRET')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
     SECRET = os.environ.get('SECRET')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 

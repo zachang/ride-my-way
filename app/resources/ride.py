@@ -19,6 +19,8 @@ class Rides(Resource):
 
     @jwt_required
     def post(self):
+        print(datetime.utcnow())
+        print(request.get_json(silent=True)['departure_time'])
         payload = request.get_json(silent=True)
         errors = ride_schema.validate(payload)
         current_user = get_jwt_identity()
@@ -51,7 +53,7 @@ class Rides(Resource):
             if errors:
                 return errors, 400
 
-            if datetime.strptime(departure, _format) < datetime.utcnow():
+            if datetime.strptime(departure, _format) < datetime.now():
                 return response_builder({
                     'status': 'fail',
                     'message': 'Your departure time can not be less than the current time'
@@ -155,7 +157,7 @@ class UserSingleRide(Resource):
                         departure_time = payload.get('departure_time')
                         _format = '%Y-%m-%d %H:%M:%S'
 
-                        if datetime.strptime(departure_time, _format) < datetime.utcnow():
+                        if datetime.strptime(departure_time, _format) < datetime.now():
                             return response_builder({
                                 'status': 'fail',
                                 'message': 'Your departure date/time must be at least current'

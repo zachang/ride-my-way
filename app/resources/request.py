@@ -232,6 +232,12 @@ class RejectRideRequest(Resource):
             Request.id.in_(request_ids)).all()
             
             if request_approval:
+                ride_ids = []
+                for approval_data in request_approval_data:
+                    ride_ids.append(approval_data.ride_id)
+
+                deduct_seat_count = Ride.query.filter(Ride.id.in_(ride_ids))\
+                .update({'seat_taken': Ride.seat_taken - 1}, synchronize_session='fetch')
                 db.session.commit()
                 return response_builder({
                 'status': 'success',
