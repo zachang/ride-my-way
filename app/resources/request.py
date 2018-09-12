@@ -171,13 +171,15 @@ class ApproveRideRequest(Resource):
                     message='Sorry, you can not approve more than 10 ride request at a go'), 406)
 
 
-            request_approval = Request.query.filter(Request.user_id == current_user,
-             Request.status.in_(['pending', 'rejected']), Request.completed == 'no', 
-             Request.id.in_(request_ids)).update({'status': 'approved'}, 
-             synchronize_session='fetch')
+            ride = Ride.filter_any(user_id=current_user).order_by(desc('created_at')).limit(1).all()
 
-            request_approval_data = Request.query.filter(Request.user_id == current_user, 
-            Request.id.in_(request_ids)).all()
+            request_approval = Request.query.filter(Request.ride_id == ride[0].id,
+                Request.status.in_(['pending', 'rejected']), Request.completed == 'no', 
+                Request.id.in_(request_ids)).update({'status': 'approved'}, 
+                synchronize_session=False)
+
+            request_approval_data = Request.query.filter(Request.ride_id == ride[0].id, 
+                Request.id.in_(request_ids)).all()
             
             if request_approval:
                 db.session.commit()
@@ -223,13 +225,16 @@ class RejectRideRequest(Resource):
                 return response_builder(dict(
                     message='Sorry, you can not reject more than 10 ride request at a go'), 406)
 
+            
+            ride = Ride.filter_any(user_id=current_user).order_by(desc('created_at')).limit(1).all()
 
-            request_approval = Request.query.filter(Request.user_id == current_user,
-             Request.status.in_(['pending', 'approved']), Request.completed == 'no', Request.id.in_(request_ids))\
-             .update({'status': 'rejected'}, synchronize_session='fetch')
+            request_approval = Request.query.filter(Request.ride_id == ride[0].id,
+                Request.status.in_(['pending', 'approved']), Request.completed == 'no',
+                Request.id.in_(request_ids))\
+                .update({'status': 'rejected'}, synchronize_session=False)
 
-            request_approval_data = Request.query.filter(Request.user_id == current_user, 
-            Request.id.in_(request_ids)).all()
+            request_approval_data = Request.query.filter(Request.ride_id == ride[0].id,
+                Request.id.in_(request_ids)).all()
             
             if request_approval:
                 ride_ids = []
@@ -237,7 +242,7 @@ class RejectRideRequest(Resource):
                     ride_ids.append(approval_data.ride_id)
 
                 deduct_seat_count = Ride.query.filter(Ride.id.in_(ride_ids))\
-                .update({'seat_taken': Ride.seat_taken - 1}, synchronize_session='fetch')
+                .update({'seat_taken': Ride.seat_taken - 1}, synchronize_session=False)
                 db.session.commit()
                 return response_builder({
                 'status': 'success',
