@@ -48,6 +48,10 @@ def create_app(config_name):
     api.add_resource(ApproveRideRequest, '/requests/approve', '/requests/approve/')
     api.add_resource(RejectRideRequest, '/requests/reject', '/requests/reject/')
 
+    @app.route('/')
+    def welcome():
+        return response_builder(dict(
+            message='Welcome to ride my way api'))
 
     # handle default 404 exceptions with a custom response
     @app.errorhandler(404)
@@ -60,7 +64,7 @@ def create_app(config_name):
 
     # handle default 500 exceptions with a custom response
     @app.errorhandler(500)
-    def resource_not_found(error):
+    def internal_server_error(error):
         return response_builder(dict(
             status='fail',
             message='The server encountered an internal error'), 
